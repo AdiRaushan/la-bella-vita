@@ -424,7 +424,7 @@
     <!-- Lightbox -->
     <div x-show="lightboxOpen" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center lightbox-backdrop" @click.self="closeLightbox()" x-cloak>
       <div class="max-w-4xl max-h-[85vh] p-4">
-        <img :src="lightboxImage" alt="Lightbox image" class="max-w-full max-h-full rounded-lg shadow-xl" x-ref="lightboxImg" @load="gsap.from($refs.lightboxImg,{scale:0.95,opacity:0,duration:.45,ease:'power2.out'})">
+        <img :src="labella2.png" alt="Lightbox image" class="max-w-full max-h-full rounded-lg shadow-xl" x-ref="lightboxImg" @load="gsap.from($refs.lightboxImg,{scale:0.95,opacity:0,duration:.45,ease:'power2.out'})">
         <button @click="closeLightbox()" class="absolute top-6 right-6 text-white bg-black/40 p-2 rounded-full">
           <i class="fas fa-times"></i>
         </button>
@@ -546,10 +546,10 @@
           { id:6, name:'Garlic Prawns', price:650, description:'Sautéed prawns with garlic & parsley.', rating:4, image:'https://images.unsplash.com/photo-1499028344343-cd173ffc68a9?auto=format&fit=crop&w=1200&q=70', category:'Appetizer' }
         ],
         galleryImages: [
-          'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1400&q=70',
-          'https://images.unsplash.com/photo-1543353071-087092ec3930?auto=format&fit=crop&w=1400&q=70',
-          'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1400&q=70',
-          'https://images.unsplash.com/photo-1528731708534-816fe59f90d6?auto=format&fit=crop&w=1400&q=70'
+          'labella2.png',
+          'labella3.jpeg',
+          'labella4.jpeg',
+          'labella3.jpeg'
         ],
         testimonials: [
           { id:1, name:'Ananya K.', location:'Bandra', avatar:'https://randomuser.me/api/portraits/women/68.jpg', rating:5, review:'Absolute delight — food tasted just like Naples. Service was warm and attentive.' },
@@ -665,3 +665,4 @@
   </script>
 </body>
 </html>
+
