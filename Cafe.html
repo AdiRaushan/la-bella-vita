@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>La Bella Vista — Modern One-Page</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Tailwind config (colors + responsive + gradients) -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#8B4513',
+            secondary: '#D2691E',
+            accent: '#F5DEB3'
+          },
+          backgroundImage: {
+            'gradient-primary': 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)',
+            'card-glow':'linear-gradient(180deg, rgba(245,222,179,0.08), rgba(245,222,179,0))'
+          },
+          boxShadow: {
+            'soft': '0 6px 18px rgba(17,24,39,0.06)',
+            'pop': '0 12px 30px rgba(17,24,39,0.10)'
+          }
+        },
+        screens: {
+          xs: '475px',
+          sm: '640px',
+          md: '768px',
+          lg: '1024px',
+          xl: '1280px',
+          '2xl': '1536px'
+        },
+        container: { center: true, padding: { DEFAULT: '1rem', sm: '1.25rem', md: '2rem' } }
+      }
+    }
+  </script>
+
+  <!-- Alpine for state + interactions -->
+  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+  <style>
+    [x-cloak] { display: none !important; }
+
+    /* glass nav + shrink */
+    .nav-glass {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: all 300ms ease;
+    }
+    .nav-scrolled {
+      padding-top: .4rem !important;
+      padding-bottom: .4rem !important;
+  
+    }
+
+    /* nav link underline */
+    .nav-link { position: relative; transition: color .25s ease; }
+    .nav-link::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -6px;
+      width: 0%;
+      height: 2px;
+      background: currentColor;
+      transition: width .25s ease;
+    }
+    .nav-link:hover::after { width: 100%; }
+    .nav-link.active { color: #D2691E; }
+
+    /* hero overlay shapes */
+    .hero-deco { pointer-events: none; opacity: .12; filter: blur(8px); }
+
+    /* subtle reveal helper */
+    .reveal { opacity: 0; transform: translateY(28px); }
+
+    /* testimonial card hover */
+    .testimonial-card { transition: transform .35s ease, box-shadow .35s ease; }
+    .testimonial-card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(17,24,39,0.12); }
+
+    /* gallery modal */
+    .lightbox-backdrop { background: rgba(0,0,0,0.75); }
+    @keyframes float {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-15px) translateX(10px); }
+}
+
+.global-shape {
+  animation: float 12s ease-in-out infinite;
+}
+  </style>
+</head>
+<body class="font-sans antialiased text-gray-800" x-data="app()" x-init="init()">
+
+  <!-- NAV -->
+  <header id="siteNav" class="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 w-[90%] md:w-auto">
+    <div class="nav-glass rounded-full shadow-lg px-6 py-3 flex items-center justify-between gap-8">
+      <div class="flex items-center justify-center">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center bg-gradient-primary text-white shadow-md">
+          <i class="fas fa-pizza-slice text-lg"></i>
+        </div>
+      </div>
+      <!-- Menu (Left) -->
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
+        <a href="#home" @click.prevent="scrollToSection('home')" class="nav-link">Home</a>
+        <a href="#about" @click.prevent="scrollToSection('about')" class="nav-link">About</a>
+        <a href="#menu" @click.prevent="scrollToSection('menu')" class="nav-link">Menu</a>
+        <a href="#gallery" @click.prevent="scrollToSection('gallery')" class="nav-link">Gallery</a>
+        <a href="#testimonials" @click.prevent="scrollToSection('testimonials')" class="nav-link">Reviews</a>
+        <a href="#contact" @click.prevent="scrollToSection('contact')" class="nav-link">Contact</a>
+      </nav>
+  
+      <!-- Center Logo -->
+  
+  
+      <!-- Book Now (Right) -->
+      <div class="hidden md:flex items-center">
+        <button @click.prevent="scrollToSection('contact')" class="bg-primary text-white px-5 py-2 rounded-full text-sm font-semibold shadow-sm hover:bg-secondary transition">
+          Book Now
+        </button>
+      </div>
+  
+      <!-- Mobile toggle -->
+      <button @click="mobileOpen = !mobileOpen" class="md:hidden p-2 text-xl ml-auto">
+        <i :class="mobileOpen ? 'fas fa-times' : 'fas fa-bars'"></i>
+      </button>
+    </div>
+  
+    <!-- Mobile menu -->
+    <div x-show="mobileOpen" x-transition class="md:hidden mt-3 rounded-xl shadow-lg border bg-white/95">
+      <div class="px-4 py-4 space-y-2 text-center">
+        <a href="#home" @click.prevent="scrollToSection('home'); mobileOpen=false" class="block py-2">Home</a>
+        <a href="#about" @click.prevent="scrollToSection('about'); mobileOpen=false" class="block py-2">About</a>
+        <a href="#menu" @click.prevent="scrollToSection('menu'); mobileOpen=false" class="block py-2">Menu</a>
+        <a href="#gallery" @click.prevent="scrollToSection('gallery'); mobileOpen=false" class="block py-2">Gallery</a>
+        <a href="#testimonials" @click.prevent="scrollToSection('testimonials'); mobileOpen=false" class="block py-2">Reviews</a>
+        <a href="#contact" @click.prevent="scrollToSection('contact'); mobileOpen=false" class="block py-2">Contact</a>
+        <button @click.prevent="scrollToSection('contact'); mobileOpen=false" class="w-full bg-primary text-white px-4 py-2 rounded-lg mt-2">Book Now</button>
+      </div>
+    </div>
+  </header>
+  
+  <!-- HERO -->
+  <section id="home" class="relative h-screen flex items-center justify-center overflow-hidden">
+    <!-- Background video -->
+    <video class="absolute inset-0 w-full h-full object-cover z-0" autoplay muted loop playsinline 
+          >
+      <source src="cafe assest/cafe.mp4" type="video/mp4">
+    </video>
+  
+    <!-- Color overlay -->
+    <div class="absolute inset-0 bg-gradient-to-r from-primary/85 via-primary/60 to-secondary/55 mix-blend-multiply z-10"></div>
+  
+    <!-- Decorative blurred shapes -->
+    <svg class="hero-deco absolute left-8 top-12 w-64 h-64 text-accent z-10 opacity-50" 
+         viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <g transform="translate(100 100)">
+        <path d="M0,-70 C30,-70 60,-50 70,-20 C80,10 60,40 30,60 C0,80 -30,60 -60,40 C-90,20 -80,-10 -70,-40 C-60,-70 -30,-70 0,-70 Z" fill="currentColor"/>
+      </g>
+    </svg>
+  
+    <!-- Hero Content -->
+    <div class="relative z-20 text-center max-w-3xl px-6">
+      <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold leading-tight text-white drop-shadow-lg">
+        La Bella Vista
+      </h1>
+      <p class="mt-4 text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
+        Taste authentic recipes from Naples crafted by our family of chefs. Book a table or explore our menu.
+      </p>
+  
+      <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+        <button @click.prevent="scrollToSection('menu')" 
+                class="inline-flex items-center gap-3 bg-white text-primary px-6 py-3 rounded-full font-semibold shadow-sm hover:scale-105 transition-transform">
+          <i class="fas fa-utensils"></i> View Menu
+        </button>
+        <button @click.prevent="scrollToSection('contact')" 
+                class="inline-flex items-center gap-3 border-2 border-white text-white px-6 py-3 rounded-full font-semibold hover:bg-white hover:text-primary transition-colors">
+          <i class="fas fa-calendar-check"></i> Reserve
+        </button>
+      </div>
+    </div>
+  
+    <!-- Scroll hint -->
+    <div class="absolute bottom-8 z-30 w-full flex justify-center text-white/80">
+      <div class="flex flex-col items-center gap-2">
+        <span class="text-sm">Scroll</span>
+        <svg class="w-6 h-6 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+  
+
+  <!-- ABOUT -->
+  <section id="about" class="relative py-24 bg-gradient-to-b from-gray-50 to-white overflow-hidden global-shape">
+    <!-- Decorative shapes -->
+    <div class="absolute -top-20 -left-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-16 -right-16 w-96 h-96 bg-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
+  
+    <div class="container relative z-10">
+      <!-- Section Header -->
+      <div class="max-w-4xl mx-auto text-center mb-16 reveal">
+        <h2 class="text-4xl md:text-5xl font-extrabold text-primary tracking-tight">Our Journey</h2>
+        <p class="mt-4 text-lg md:text-xl text-gray-600">
+          From the heart of Naples to the streets of Mumbai — generations of passion, tradition, and fresh ingredients define La Bella Vista.
+        </p>
+      </div>
+  
+      <div class="grid lg:grid-cols-2 gap-12 items-start">
+        <!-- Left: Image with overlay -->
+        <div class="relative reveal">
+          <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1200&q=80" 
+               alt="Chef preparing food" class="rounded-3xl shadow-2xl w-full object-cover h-[500px]">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent rounded-3xl"></div>
+        </div>
+  
+        <!-- Right: Story + Timeline -->
+        <div class="reveal flex flex-col justify-center gap-8">
+          <h3 class="text-3xl font-bold text-primary mb-4">Family Recipes & Fresh Ingredients</h3>
+          <p class="text-gray-700 text-lg leading-relaxed mb-6">
+            La Bella Vista started as a small family kitchen in Naples. With each generation, our recipes evolved, but the commitment to authentic flavors and fresh ingredients remained unchanged.
+          </p>
+  
+          <!-- Timeline -->
+          <div class="space-y-6">
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center shadow-lg">
+                <i class="fas fa-seedling"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold text-secondary text-lg">1920s — The Roots</h4>
+                <p class="text-gray-600">Our ancestors crafted simple yet delicious dishes in Naples using only the freshest local produce.</p>
+              </div>
+            </div>
+  
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center shadow-lg">
+                <i class="fas fa-utensils"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold text-secondary text-lg">1985 — Mumbai Arrival</h4>
+                <p class="text-gray-600">Bringing the taste of Naples to Mumbai, we opened our first family-owned restaurant, delighting locals with authentic flavors.</p>
+              </div>
+            </div>
+  
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center shadow-lg">
+                <i class="fas fa-award"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold text-secondary text-lg">Today — Culinary Excellence</h4>
+                <p class="text-gray-600">With award-winning chefs and a passion for innovation, we continue to craft memorable experiences while honoring tradition.</p>
+              </div>
+            </div>
+          </div>
+  
+          <!-- Call to Action -->
+          <button @click.prevent="scrollToSection('menu')" 
+                  class="mt-8 w-max bg-primary text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:bg-secondary transition">
+            Explore Our Menu
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+
+  <!-- MENU -->
+  <section id="menu" class="py-24 relative global-shape ">
+    
+    <div class="container">
+      <div class="text-center mb-16 reveal">
+        <h2 class="text-4xl font-extrabold text-primary">Our Menu</h2>
+        <p class="text-gray-600 mt-3 text-lg">Discover Italian classics and our chef’s signature creations.</p>
+      </div>
+  
+      <div class="grid lg:grid-cols-2 gap-14 items-start">
+        
+        <!-- Left Side: Card Menu -->
+        <div class="grid sm:grid-cols-2 gap-8">
+          <template x-for="item in menuItems" :key="item.id">
+            <article class="bg-white rounded-2xl shadow-soft overflow-hidden reveal hover:shadow-pop transition transform hover:-translate-y-2">
+              <div class="relative h-52 overflow-hidden">
+                <img :src="item.image" :alt="item.name" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-card"></div>
+              </div>
+              <div class="p-6">
+                <h3 class="text-lg font-semibold text-primary" x-text="item.name"></h3>
+                <p class="text-sm text-gray-500" x-text="item.category"></p>
+                <p class="mt-2 text-gray-700 line-clamp-2" x-text="item.description"></p>
+                <div class="mt-3 flex items-center justify-between">
+                  <div class="text-lg font-bold text-secondary" x-text="'₹' + item.price"></div>
+                  <button class="bg-primary text-white px-4 py-2 rounded-full text-xs hover:bg-secondary transition" @click.prevent="addToCart(item)">
+                    Order
+                  </button>
+                </div>
+              </div>
+            </article>
+          </template>
+        </div>
+  
+        <!-- Right Side: Extended Text-based Menu -->
+        <div class="bg-white rounded-2xl shadow-soft p-10 reveal lg:max-h-[750px] overflow-y-auto custom-scrollbar">
+          <h3 class="text-3xl font-bold text-primary mb-8">Full Menu</h3>
+          
+          <div class="space-y-10 text-gray-800">
+            
+            <!-- Starters -->
+            <div>
+              <h4 class="text-xl font-semibold text-secondary mb-3">🥗 Starters</h4>
+              <ul class="divide-y divide-gray-200">
+                <li class="flex justify-between py-2"><span>Bruschetta al Pomodoro</span><span class="font-medium text-primary">₹250</span></li>
+                <li class="flex justify-between py-2"><span>Garlic Bread with Cheese</span><span class="font-medium text-primary">₹220</span></li>
+                <li class="flex justify-between py-2"><span>Stuffed Mushrooms</span><span class="font-medium text-primary">₹280</span></li>
+                <li class="flex justify-between py-2"><span>Caprese Salad</span><span class="font-medium text-primary">₹300</span></li>
+              </ul>
+            </div>
+  
+            <!-- Pasta -->
+            <div>
+              <h4 class="text-xl font-semibold text-secondary mb-3">🍝 Pasta</h4>
+              <ul class="divide-y divide-gray-200">
+                <li class="flex justify-between py-2"><span>Spaghetti Aglio e Olio</span><span class="font-medium text-primary">₹380</span></li>
+                <li class="flex justify-between py-2"><span>Fettuccine Alfredo</span><span class="font-medium text-primary">₹420</span></li>
+                <li class="flex justify-between py-2"><span>Penne Arrabbiata</span><span class="font-medium text-primary">₹360</span></li>
+                <li class="flex justify-between py-2"><span>Lasagna al Forno</span><span class="font-medium text-primary">₹480</span></li>
+              </ul>
+            </div>
+  
+            <!-- Pizza -->
+            <div>
+              <h4 class="text-xl font-semibold text-secondary mb-3">🍕 Pizza</h4>
+              <ul class="divide-y divide-gray-200">
+                <li class="flex justify-between py-2"><span>Margherita</span><span class="font-medium text-primary">₹350</span></li>
+                <li class="flex justify-between py-2"><span>Pepperoni</span><span class="font-medium text-primary">₹450</span></li>
+                <li class="flex justify-between py-2"><span>Veggie Delight</span><span class="font-medium text-primary">₹400</span></li>
+                <li class="flex justify-between py-2"><span>Quattro Formaggi</span><span class="font-medium text-primary">₹500</span></li>
+              </ul>
+            </div>
+  
+            <!-- Desserts -->
+            <div>
+              <h4 class="text-xl font-semibold text-secondary mb-3">🍨 Desserts</h4>
+              <ul class="divide-y divide-gray-200">
+                <li class="flex justify-between py-2"><span>Tiramisu</span><span class="font-medium text-primary">₹280</span></li>
+                <li class="flex justify-between py-2"><span>Panna Cotta</span><span class="font-medium text-primary">₹260</span></li>
+                <li class="flex justify-between py-2"><span>Gelato (3 scoops)</span><span class="font-medium text-primary">₹240</span></li>
+                <li class="flex justify-between py-2"><span>Chocolate Lava Cake</span><span class="font-medium text-primary">₹300</span></li>
+              </ul>
+            </div>
+  
+            <!-- Specials -->
+            <div class="mt-6 p-5 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg">
+              <h4 class="text-xl font-bold text-primary mb-3">⭐ Chef’s Specials</h4>
+              <ul>
+                <li class="flex justify-between py-2"><span>Truffle Risotto</span><span class="font-semibold text-secondary">₹650</span></li>
+                <li class="flex justify-between py-2"><span>Wood-fired Margherita Pizza</span><span class="font-semibold text-secondary">₹480</span></li>
+                <li class="flex justify-between py-2"><span>Lobster Ravioli</span><span class="font-semibold text-secondary">₹750</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+  
+      </div>
+    </div>
+  </section>
+  
+  <!-- GSAP Animation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      gsap.utils.toArray(".reveal").forEach((el) => {
+        gsap.from(el, {
+          opacity: 0,
+          y: 50,
+          duration: 1,
+          scrollTrigger: {
+            trigger: el,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        });
+      });
+    });
+  </script>
+  
+
+  <!--  -->
+  
+  <!-- GALLERY -->
+  <section id="gallery" class="py-20 bg-gray-50 global-shape">
+    <div class="container">
+      <div class="text-center mb-12 reveal">
+        <h2 class="text-3xl font-extrabold text-primary">Gallery</h2>
+        <p class="text-gray-600 mt-2">A visual taste of our kitchen & plates.</p>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <template x-for="(img, idx) in galleryImages" :key="idx">
+          <div class="group relative overflow-hidden rounded-lg cursor-pointer" @click="openLightbox(img)">
+            <img :src="img" :alt="'Gallery ' + (idx+1)" class="w-full h-40 object-cover group-hover:scale-105 transition-transform">
+            <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
+              <div class="p-3 text-white">View</div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Lightbox -->
+    <div x-show="lightboxOpen" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center lightbox-backdrop" @click.self="closeLightbox()" x-cloak>
+      <div class="max-w-4xl max-h-[85vh] p-4">
+        <img :src="lightboxImage" alt="Lightbox image" class="max-w-full max-h-full rounded-lg shadow-xl" x-ref="lightboxImg" @load="gsap.from($refs.lightboxImg,{scale:0.95,opacity:0,duration:.45,ease:'power2.out'})">
+        <button @click="closeLightbox()" class="absolute top-6 right-6 text-white bg-black/40 p-2 rounded-full">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section id="testimonials" class="py-20 global-shape">
+    <div class="container">
+      <div class="text-center mb-12 reveal">
+        <h2 class="text-3xl font-extrabold text-primary">What Our Guests Say</h2>
+        <p class="text-gray-600 mt-2">Real stories from happy diners.</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <template x-for="t in testimonials" :key="t.id">
+          <div class="bg-white rounded-2xl p-6 testimonial-card reveal">
+            <div class="flex items-center gap-4 mb-4">
+              <img :src="t.avatar" :alt="t.name" class="w-14 h-14 rounded-full object-cover ring-2 ring-primary/20">
+              <div>
+                <div class="font-semibold text-primary" x-text="t.name"></div>
+                <div class="text-xs text-gray-400" x-text="t.location"></div>
+              </div>
+            </div>
+            <div class="mb-4 flex items-center text-yellow-400">
+              <template x-for="i in t.rating" :key="i">
+                <i class="fas fa-star mr-1"></i>
+              </template>
+            </div>
+            <p class="text-gray-700 italic" x-text="t.review"></p>
+          </div>
+        </template>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT / RESERVATION -->
+  <section id="contact" class="py-20 bg-gray-50 global-shape" >
+    <div class="container">
+      <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-soft p-8 reveal">
+        <h3 class="text-2xl font-bold text-primary mb-3">Reserve a Table</h3>
+        <p class="text-gray-600 mb-6">We'll confirm your booking by phone.</p>
+
+        <form @submit.prevent="bookTable" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input x-model="reservation.name" required placeholder="Your name" class="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary/30">
+            <input x-model="reservation.phone" required type="tel" placeholder="Phone" class="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary/30">
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input x-model="reservation.date" required type="date" class="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary/30">
+            <input x-model="reservation.time" required type="time" class="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary/30">
+            <select x-model="reservation.guests" class="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary/30">
+              <option value="1">1 person</option>
+              <option value="2">2 people</option>
+              <option value="3">3 people</option>
+              <option value="4">4 people</option>
+              <option value="5">5 people</option>
+            </select>
+          </div>
+
+          <textarea x-model="reservation.message" rows="3" placeholder="Any special requests (optional)" class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary/30"></textarea>
+
+          <div class="flex items-center justify-between">
+            <button type="submit" class="bg-primary text-white px-5 py-2 rounded-full hover:bg-secondary transition">Book Table</button>
+            <div x-show="showReservationSuccess" x-transition class="text-green-600 font-semibold">Reservation submitted — we'll call to confirm.</div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t py-8 global-shape">
+    <div class="container">
+      <div class="grid md:grid-cols-3 gap-6">
+        <div>
+          <div class="text-xl font-bold text-primary">La Bella Vista</div>
+          <p class="text-gray-600 mt-2">Authentic Italian cuisine — family-owned since 1985.</p>
+          <div class="flex items-center gap-3 mt-4">
+            <a class="text-gray-500 hover:text-primary" href="#"><i class="fab fa-instagram"></i></a>
+            <a class="text-gray-500 hover:text-primary" href="#"><i class="fab fa-facebook"></i></a>
+            <a class="text-gray-500 hover:text-primary" href="#"><i class="fab fa-twitter"></i></a>
+          </div>
+        </div>
+
+        <div>
+          <div class="font-semibold text-primary mb-2">Opening Hours</div>
+          <div class="text-gray-600">Mon - Sun: 11:00 AM - 11:00 PM</div>
+        </div>
+
+        <div>
+          <div class="font-semibold text-primary mb-2">Location</div>
+          <div class="text-gray-600">Colaba, Mumbai</div>
+          <div class="text-gray-600 mt-1">Phone: +91 22 1234 5678</div>
+        </div>
+      </div>
+
+      <div class="text-center text-gray-400 mt-8">&copy; <span x-text="new Date().getFullYear()"></span> La Bella Vista. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <!-- Alpine app + behavior -->
+  <script>
+    function app(){
+      return {
+        mobileOpen: false,
+        lightboxOpen: false,
+        lightboxImage: '',
+        reservation: { name:'', phone:'', date:'', time:'', guests:2, message:'' },
+        showReservationSuccess: false,
+        menuItems: [
+          { id:1, name:'Bruschetta', price:350, description:'Grilled bread with tomato, garlic & basil.', rating:4, image:'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=1200&q=70', category:'Appetizer' },
+          { id:2, name:'Margherita Pizza', price:550, description:'Tomato, fresh mozzarella & basil.', rating:5, image:'https://images.unsplash.com/photo-1548365328-5f617f4a8f9f?auto=format&fit=crop&w=1200&q=70', category:'Pizza' },
+          { id:3, name:'Penne Arrabbiata', price:450, description:'Penne in spicy tomato sauce.', rating:4, image:'https://images.unsplash.com/photo-1525755662778-989d0524087e?auto=format&fit=crop&w=1200&q=70', category:'Pasta' },
+          { id:4, name:'Tiramisu', price:300, description:'Coffee-flavored classic dessert.', rating:5, image:'https://images.unsplash.com/photo-1542444459-db8b2f4a7a1b?auto=format&fit=crop&w=1200&q=70', category:'Dessert' },
+          { id:5, name:'Grilled Salmon', price:950, description:'Salmon fillet with lemon butter & herbs.', rating:4, image:'https://images.unsplash.com/photo-1604908177522-4f1aafc7c6d7?auto=format&fit=crop&w=1200&q=70', category:'Main' },
+          { id:6, name:'Garlic Prawns', price:650, description:'Sautéed prawns with garlic & parsley.', rating:4, image:'https://images.unsplash.com/photo-1499028344343-cd173ffc68a9?auto=format&fit=crop&w=1200&q=70', category:'Appetizer' }
+        ],
+        galleryImages: [
+          'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1400&q=70',
+          'https://images.unsplash.com/photo-1543353071-087092ec3930?auto=format&fit=crop&w=1400&q=70',
+          'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1400&q=70',
+          'https://images.unsplash.com/photo-1528731708534-816fe59f90d6?auto=format&fit=crop&w=1400&q=70'
+        ],
+        testimonials: [
+          { id:1, name:'Ananya K.', location:'Bandra', avatar:'https://randomuser.me/api/portraits/women/68.jpg', rating:5, review:'Absolute delight — food tasted just like Naples. Service was warm and attentive.' },
+          { id:2, name:'Rohit S.', location:'Andheri', avatar:'https://randomuser.me/api/portraits/men/32.jpg', rating:5, review:'Cozy atmosphere and authentic flavors. Loved the tiramisu!' },
+          { id:3, name:'Meera P.', location:'Colaba', avatar:'https://randomuser.me/api/portraits/women/44.jpg', rating:4, review:'Perfect spot for family dinners. Pasta was cooked to perfection.' },
+          { id:4, name:'Karan D.', location:'Juhu', avatar:'https://randomuser.me/api/portraits/men/18.jpg', rating:5, review:'Lovely ambiance — great for date nights. Highly recommend the Margherita.' }
+        ],
+
+        init(){
+          // Defer GSAP setup until DOM ready
+          requestAnimationFrame(()=>{ initGSAP() });
+        },
+
+        openLightbox(src){
+          this.lightboxImage = src;
+          this.lightboxOpen = true;
+        },
+        closeLightbox(){
+          this.lightboxOpen = false;
+          this.lightboxImage = '';
+        },
+        addToCart(item){
+          // placeholder
+          alert(item.name + ' added to cart (demo).');
+        },
+        bookTable(){
+          if(!this.reservation.name || !this.reservation.phone || !this.reservation.date || !this.reservation.time){
+            alert('Please fill in name, phone, date and time.');
+            return;
+          }
+          console.log('Reservation', this.reservation);
+          this.showReservationSuccess = true;
+          setTimeout(()=>{ this.showReservationSuccess = false; this.reservation = { name:'', phone:'', date:'', time:'', guests:2, message:'' } }, 3000);
+        },
+        scrollToSection(id){
+          const el = document.getElementById(id);
+          if(!el) return;
+          const navHeight = document.getElementById('siteNav').offsetHeight;
+          const y = el.getBoundingClientRect().top + window.pageYOffset - navHeight - 8;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+          this.mobileOpen = false;
+        }
+      };
+    }
+
+    // GSAP / ScrollTrigger initialization
+    function initGSAP(){
+      gsap.registerPlugin(ScrollTrigger);
+
+      // Hero parallax (background moves slower)
+      gsap.to('.hero-bg', {
+        yPercent: 12,
+        ease:'none',
+        scrollTrigger: { trigger: '#home', start: 'top top', end: 'bottom top', scrub: true }
+      });
+
+      // Hero content entrance
+      gsap.from('.hero-content', { y: 40, opacity: 0, duration: 1.1, ease: 'power3.out' });
+
+      // reveal for .reveal elements (stagger)
+      gsap.utils.toArray('.reveal').forEach((el, i) => {
+        gsap.fromTo(el, { y: 28, opacity: 0 }, {
+          y: 0, opacity: 1, duration: 0.8, ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 80%', toggleActions: 'play none none reverse', once: false, markers: false },
+          delay: i * 0.06
+        });
+      });
+
+      // testimonials stagger animation
+      gsap.from('.testimonial-card', {
+        y: 24, opacity: 0, duration: .8, ease: 'power3.out', stagger: .12,
+        scrollTrigger: { trigger: '#testimonials', start: 'top 85%' }
+      });
+
+      // gallery images subtle pop
+      gsap.utils.toArray('#gallery img').forEach(img => {
+        gsap.from(img, {
+          scale: 1.04, opacity: 0, duration: .9, ease: 'power3.out',
+          scrollTrigger: { trigger: img, start: 'top 90%' }
+        });
+      });
+
+      // nav shrink on scroll
+      const nav = document.getElementById('siteNav');
+      ScrollTrigger.create({
+        start: 60,
+        onUpdate: self => {
+          if(window.scrollY > 60) nav.classList.add('nav-scrolled'); else nav.classList.remove('nav-scrolled');
+        }
+      });
+
+      // active link highlighting
+      const sections = document.querySelectorAll('section[id]');
+      sections.forEach(section => {
+        ScrollTrigger.create({
+          trigger: section,
+          start: 'top center',
+          end: 'bottom center',
+          onEnter: () => setActiveLink(section.id),
+          onEnterBack: () => setActiveLink(section.id)
+        });
+      });
+
+      function setActiveLink(id){
+        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+        const link = document.querySelector('.nav-link[href="#'+id+'"]') || document.querySelector('.nav-link[href="#'+id+'"]');
+        // fallback: match by href includes
+        [...document.querySelectorAll('.nav-link')].forEach(a=>{
+          if(a.getAttribute('href') === '#'+id) a.classList.add('active');
+        });
+      }
+    }
+  </script>
+</body>
+</html>
